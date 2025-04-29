@@ -1,3 +1,32 @@
+import discord
+from discord.ext import commands, tasks
+import requests
+from bs4 import BeautifulSoup
+
+intents = discord.Intents.default()
+intents.message_content = True
+
+bot = commands.Bot(command_prefix='!', intents=intents)
+
+
+seen_ads = {}
+
+
+categories_map = {
+    "voitures": "voitures",
+    "jeux_video": "jeux_video",
+    "informatique": "informatique",
+    "multimedia": "multimedia",
+    "mode": "mode",
+    "immobilier": "immobilier",
+    "services": "services"
+   
+}
+
+@bot.event
+async def on_ready():
+    print(f'🤖 Connecté en tant que {bot.user}')
+
 @bot.command()
 async def startdeal(ctx, search_term: str, category: str):
     search_term_key = f"{search_term.lower().strip()}_{category.lower().strip()}"
@@ -6,33 +35,20 @@ async def startdeal(ctx, search_term: str, category: str):
         await ctx.send(f"🔁 La surveillance de '**{search_term}**' dans la catégorie '**{category}**' est déjà en cours.")
         return
 
-    seen_ads[search_term_key] = set()
-    await ctx.send(f"📡 Surveillance lancée pour '**{search_term}**' dans la catégorie '**{category}**'.")
-
-    # Table de correspondance pour les catégories LeBonCoin (partielle, à compléter selon les besoins)
-    categories_map = {
-        "voitures": "voitures",
-        "jeux_video": "jeux_video",
-        "informatique": "informatique",
-        "multimedia": "multimedia",
-        "mode": "mode",
-        "immobilier": "immobilier",
-        "services": "services"
-        # etc.
-    }
-
     if category not in categories_map:
-        await ctx.send(f"❌ Catégorie inconnue : **{category}**. Veuillez choisir parmi : {', '.join(categories_map.keys())}")
+        await ctx.send(f"❌ Catégorie inconnue : **{category}**. Choisis parmi : {', '.join(categories_map.keys())}")
         return
 
-    category_path = categories_map[category]
+    seen_ads[search_term_key] = set()
+    await ctx.send(f"📡 Surveillance de '**{search_term}**' dans '**{category}**' toutes les 60 secondes.")
 
     async def fetch_and_send_new_deals():
         headers = {
             "User-Agent": "Mozilla/5.0"
         }
 
-        url = f"https://www.leboncoin.fr/recherche?category={category_path}&text={search_term.replace(' ', '%20')}&sort=price&order=asc"
+        cat_path = categories_map[category]
+        url = f"https://www.leboncoin.fr/recherche?category={cat_path}&text={search_term.replace(' ', '%20')}&sort=price&order=asc"
 
         try:
             response = requests.get(url, headers=headers)
@@ -66,5 +82,6 @@ async def startdeal(ctx, search_term: str, category: str):
         await fetch_and_send_new_deals()
 
     monitor_loop.start()
+
 
 bot.run('MTM2NjUzNTgxODU0OTc4ODcwMg.GaoLPE.AIwRJA3OJXt-zIkZB57BjGyKvO3Co22ceYwT8k')
