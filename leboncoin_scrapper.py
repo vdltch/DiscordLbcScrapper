@@ -2,6 +2,18 @@ import discord
 from discord.ext import commands, tasks
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+options = Options()
+options.add_argument('--headless')
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-dev-shm-usage')
+
+driver = webdriver.Chrome(options=options)
+driver.get("https://www.leboncoin.fr")
+print(driver.title)
+driver.quit()
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -84,4 +96,4 @@ async def startdeal(ctx, search_term: str, category: str):
     monitor_loop.start()
 
 
-bot.run('MTM2NjUzNTgxODU0OTc4ODcwMg.GaoLPE.AIwRJA3OJXt-zIkZB57BjGyKvO3Co22ceYwT8k')
+bot.run('MTM2NjUzNTgxODU0OTc4ODcwMg.GrHlXe.h78bHy0ZL5NrhItIn3i4n57AJBJGjG3fXM2Z8o')
